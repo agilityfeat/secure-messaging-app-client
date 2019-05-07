@@ -24,7 +24,7 @@ class Firebase {
     users = () => this.db.ref('users')
 
     //messages api
-    message = uid => this.db.ref(`messages/${uid}`)
+    message = () => this.db.ref('messages').push()
     messages = () => this.db.ref('messages')
 }
 

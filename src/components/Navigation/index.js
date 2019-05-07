@@ -16,6 +16,9 @@ const Navigation = () => (
 const NavigationAuth = () => (
     <ul>
         <li>
+            <Link to={ROUTES.CHAT_ROOM}>Chat Room</Link>
+        </li>
+        <li>
             <Link to={ROUTES.LANDING}>Landing</Link>
         </li>
         <li>
