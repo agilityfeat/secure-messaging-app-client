@@ -4,6 +4,7 @@ import {compose} from 'recompose'
 
 import * as ROUTES from '../../constants/routes'
 import {withFirebase} from '../Firebase'
+import {withEThree, EThreeContext} from '../EThree'
 
 const INITIAL_STATE = {
     username: '',
@@ -16,7 +17,11 @@ const INITIAL_STATE = {
 const SignUp = () => (
     <div>
         <h1>SignUp</h1>
-        <SignUpForm />
+        <EThreeContext.Consumer>
+            {eThreePromise => (
+                <SignUpForm eThreePromise={eThreePromise} />
+            )}
+        </EThreeContext.Consumer>
     </div>
 )
 
@@ -28,10 +33,14 @@ class SignUpFormBase extends Component {
 
     onSubmit = event => {
         const { username, email, passwordOne } = this.state
+        const { eThreePromise } = this.props
 
         this.props.firebase
             .doCreateUserWithEmailAndPassword(email, passwordOne)
-            .then(authUser => {
+            .then(async authUser => {
+                console.log('Promise value at signup', eThreePromise)
+                const eThree = await eThreePromise
+                await eThree.register()
                 return this.props.firebase
                     .user(authUser.user.uid)
                     .set({
@@ -113,6 +122,6 @@ const SignUpForm = compose(
     withFirebase
 )(SignUpFormBase)
 
-export default SignUp
+export default withEThree(SignUp)
 
 export {SignUpForm, SignUpLink}

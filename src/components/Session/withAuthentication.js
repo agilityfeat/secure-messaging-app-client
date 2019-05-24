@@ -17,6 +17,8 @@ const withAuthentication = Component => {
             this.listener = this.props.firebase.auth.onAuthStateChanged(authUser => {
                 authUser ? this.setState({ authUser }) : this.setState({ authUser: null })
             })
+            console.log('What type is this.listener?', typeof(this.listener))
+            console.log('What is this.listener', this.listener)
         }
 
         componentWillUnmount() {

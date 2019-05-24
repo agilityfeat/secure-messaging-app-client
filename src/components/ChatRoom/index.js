@@ -1,7 +1,9 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
+import { compose } from 'recompose'
 import { withFirebase } from '../Firebase';
 import AuthUserContext from '../Session/context';
 import { withAuthorization } from '../Session';
+import { EThreeContext, withEThree } from '../EThree'
 
 const ChatRoom = () => (
     <div>
@@ -9,7 +11,11 @@ const ChatRoom = () => (
         <Messages />
         <AuthUserContext.Consumer>
             {authUser => (
-                <ChatForm authUser={authUser} />
+                <EThreeContext.Consumer>
+                    {eThreePromise => (
+                        <ChatForm authUser={authUser} eThreePromise={eThreePromise} />
+                    )}
+                </EThreeContext.Consumer>
             )
             }
         </AuthUserContext.Consumer>
@@ -29,22 +35,30 @@ class ChatFormBase extends Component {
     }
 
     onSubmit = event => {
-        
-        const { message } = this.state
-        const { authUser } = this.props
 
-        this.props.firebase
-            .message()
-            .set({
-                message: message,
-                sender: authUser.email
-            })
-            .then(() => {
-                this.setState({ ...CHATFORM_INITIAL_STATE })
-            })
-            .catch(error => {
-                this.setState({ error })
-            })
+        const { message } = this.state
+        const { authUser, eThreePromise } = this.props
+
+        this.props.firebase.users().once('value', async snapshot => {
+            const userObject = snapshot.val()
+            const userList = Object.keys(userObject)
+            console.log('encrypting for users', userList)
+            const eThree = await eThreePromise
+            const publicKeys = await eThree.lookupPublicKeys(userList)
+            const encryptedMessage = await eThree.encrypt(message, publicKeys)
+            this.props.firebase
+                .message()
+                .set({
+                    message: encryptedMessage,
+                    sender: authUser.email
+                })
+                .then(() => {
+                    this.setState({ ...CHATFORM_INITIAL_STATE })
+                })
+                .catch(error => {
+                    this.setState({ error })
+                })
+        })
 
         event.preventDefault()
     }
@@ -131,4 +145,4 @@ const Messages = withFirebase(MessagesBase)
 
 const condition = authUser => !!authUser
 
-export default withAuthorization(condition)(ChatRoom)
+export default compose(withAuthorization(condition), withEThree)(ChatRoom)
