@@ -38,11 +38,11 @@ const withEThree = Component => {
                         console.log('Initializaing Ethree')
                         eThreePromise = EThree.initialize(getToken);
                         console.log('new promise value', eThreePromise)
-                        this.setState({eThreePromise})
                         eThreePromise.then(resolve).catch(reject);
                     }
                 });
             });
+            this.setState({eThreePromise})
         }
 
         render() {
