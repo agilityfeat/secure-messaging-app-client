@@ -4,7 +4,7 @@ import {compose} from 'recompose'
 
 import * as ROUTES from '../../constants/routes'
 import {withFirebase} from '../Firebase'
-import {withEThree, EThreeContext} from '../EThree'
+import { EThreeContext } from '../EThree'
 
 const INITIAL_STATE = {
     username: '',
@@ -122,6 +122,6 @@ const SignUpForm = compose(
     withFirebase
 )(SignUpFormBase)
 
-export default withEThree(SignUp)
+export default SignUp
 
 export {SignUpForm, SignUpLink}

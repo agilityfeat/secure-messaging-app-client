@@ -1,19 +1,21 @@
 import React, { Component } from 'react'
-import { compose } from 'recompose'
 import { withFirebase } from '../Firebase';
 import AuthUserContext from '../Session/context';
 import { withAuthorization } from '../Session';
-import { EThreeContext, withEThree } from '../EThree'
+import { EThreeContext } from '../EThree'
 
 const ChatRoom = () => (
     <div>
         <h1>Messages</h1>
-        <Messages />
         <AuthUserContext.Consumer>
             {authUser => (
                 <EThreeContext.Consumer>
                     {eThreePromise => (
-                        <ChatForm authUser={authUser} eThreePromise={eThreePromise} />
+                        <div>
+                            <ChatForm authUser={authUser} eThreePromise={eThreePromise} />
+                            <Messages authUser={authUser} eThreePromise={eThreePromise} />
+                        </div>
+
                     )}
                 </EThreeContext.Consumer>
             )
@@ -102,17 +104,28 @@ class MessagesBase extends Component {
 
     componentDidMount() {
         this.setState({ loading: true })
+        const { authUser, eThreePromise } = this.props
 
-        this.props.firebase.messages().on('value', snapshot => {
-            const messageObject = snapshot.val() || {}
+        eThreePromise.then(async eThree => {
+            const publicKey = await eThree.lookupPublicKeys(authUser.uid)
 
-            const messageList = Object.keys(messageObject).map(key => ({
-                ...messageObject[key],
-                uid: key
-            }))
+            this.props.firebase.messages().on('value', snapshot => {
+                const messageObject = snapshot.val() || {}
 
-            this.setState({
-                messages: messageList
+                const messageListPromise = Object.keys(messageObject).map(async key => {
+                    const decryptedMessage = await eThree.decrypt(messageObject[key].message, publicKey)
+                    return {
+                        ...messageObject[key],
+                        uid: key,
+                        decryptedMessage: decryptedMessage
+                    }   
+                })
+
+                Promise.all(messageListPromise).then(messageList => {
+                    this.setState({
+                        messages: messageList
+                    })
+                })
             })
         })
     }
@@ -132,7 +145,7 @@ class MessagesBase extends Component {
                             <strong>{message.sender}</strong>
                         </span>
                         <span>
-                            <p>{message.message}</p>
+                            <p>{message.decryptedMessage}</p>
                         </span>
                     </div>
                 ))}
@@ -145,4 +158,4 @@ const Messages = withFirebase(MessagesBase)
 
 const condition = authUser => !!authUser
 
-export default compose(withAuthorization(condition), withEThree)(ChatRoom)
+export default withAuthorization(condition)(ChatRoom)

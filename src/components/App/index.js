@@ -3,6 +3,7 @@ import {
   BrowserRouter as Router,
   Route
 } from 'react-router-dom'
+import {compose} from 'recompose'
 
 import Navigation from '../Navigation'
 import LandingPage from '../Landing'
@@ -16,6 +17,7 @@ import ChatRoomPage from '../ChatRoom'
 
 import * as ROUTES from '../../constants/routes'
 import { withAuthentication } from '../Session'
+import { withEThree } from '../EThree'
 
 const App = () => (
   <Router>
@@ -34,4 +36,7 @@ const App = () => (
   </Router>
 )
 
-export default withAuthentication(App)
+export default compose(
+  withAuthentication,
+  withEThree
+  )(App)
