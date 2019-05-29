@@ -13,7 +13,7 @@ const ChatRoom = () => (
                     {eThreePromise => (
                         <div>
                             <ChatForm authUser={authUser} eThreePromise={eThreePromise} />
-                            <Messages authUser={authUser} eThreePromise={eThreePromise} />
+                            <Messages eThreePromise={eThreePromise} />
                         </div>
 
                     )}
@@ -52,7 +52,7 @@ class ChatFormBase extends Component {
                 .message()
                 .set({
                     message: encryptedMessage,
-                    sender: authUser.email
+                    sender: authUser.uid
                 })
                 .then(() => {
                     this.setState({ ...CHATFORM_INITIAL_STATE })
@@ -107,17 +107,19 @@ class MessagesBase extends Component {
         const { authUser, eThreePromise } = this.props
 
         eThreePromise.then(async eThree => {
-            const publicKey = await eThree.lookupPublicKeys(authUser.uid)
 
             this.props.firebase.messages().on('value', snapshot => {
                 const messageObject = snapshot.val() || {}
 
                 const messageListPromise = Object.keys(messageObject).map(async key => {
+                    const publicKey = await eThree.lookupPublicKeys(messageObject[key].sender)
                     const decryptedMessage = await eThree.decrypt(messageObject[key].message, publicKey)
+                    const userSnapshot = await this.props.firebase.user(messageObject[key].sender).once('value')
                     return {
-                        ...messageObject[key],
                         uid: key,
-                        decryptedMessage: decryptedMessage
+                        decryptedMessage: decryptedMessage,
+                        user: (userSnapshot.val() && userSnapshot.val().username) || 'Anonymous'
+
                     }   
                 })
 
@@ -142,7 +144,7 @@ class MessagesBase extends Component {
                 {messages.map(message => (
                     <div key={message.uid}>
                         <span>
-                            <strong>{message.sender}</strong>
+                            <strong>{message.user}</strong>
                         </span>
                         <span>
                             <p>{message.decryptedMessage}</p>
