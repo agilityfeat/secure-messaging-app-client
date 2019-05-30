@@ -5,13 +5,13 @@ import { withAuthorization } from '../Session';
 import { EThreeContext } from '../EThree'
 
 const ChatRoom = () => (
-    <div>
-        <h1>Messages</h1>
         <AuthUserContext.Consumer>
             {authUser => (
                 <EThreeContext.Consumer>
                     {eThreePromise => (
                         <div>
+                            <p>Logged in as: {authUser.email} </p>
+                            <h1>Messages</h1>
                             <ChatForm authUser={authUser} eThreePromise={eThreePromise} />
                             <Messages eThreePromise={eThreePromise} />
                         </div>
@@ -21,8 +21,6 @@ const ChatRoom = () => (
             )
             }
         </AuthUserContext.Consumer>
-
-    </div>
 )
 
 const CHATFORM_INITIAL_STATE = {
@@ -118,8 +116,8 @@ class MessagesBase extends Component {
                     return {
                         uid: key,
                         decryptedMessage: decryptedMessage,
-                        user: (userSnapshot.val() && userSnapshot.val().username) || 'Anonymous'
-
+                        user: (userSnapshot.val() && userSnapshot.val().username) || 'Anonymous',
+                        email: (userSnapshot.val() && userSnapshot.val().email) || 'anonymous@mail.com'
                     }   
                 })
 
@@ -144,7 +142,7 @@ class MessagesBase extends Component {
                 {messages.map(message => (
                     <div key={message.uid}>
                         <span>
-                            <strong>{message.user}</strong>
+                            <strong>{message.user}({message.email})</strong>
                         </span>
                         <span>
                             <p>{message.decryptedMessage}</p>
