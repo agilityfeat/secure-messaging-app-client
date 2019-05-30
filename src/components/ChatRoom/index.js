@@ -102,7 +102,7 @@ class MessagesBase extends Component {
 
     componentDidMount() {
         this.setState({ loading: true })
-        const { authUser, eThreePromise } = this.props
+        const { eThreePromise } = this.props
 
         eThreePromise.then(async eThree => {
 
