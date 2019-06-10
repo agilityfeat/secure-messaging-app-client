@@ -1,4 +1,4 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app). Firebase authentication was implemented based on [an awesome tutorial](https://www.robinwieruch.de/complete-firebase-authentication-react-tutorial/) by Robin Wieruch.
 
 ## Available Scripts
 
